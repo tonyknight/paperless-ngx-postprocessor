@@ -220,3 +220,46 @@ class PaperlessAPI:
         result["DOCUMENT_TAGS"] = ",".join([self.get_tag_by_id(tag_id).get("name") for tag_id in document.get("tags")])
 
         return result
+
+    def get_or_create_correspondent(self, name):
+        """Get correspondent ID by name or create if doesn't exist"""
+        correspondents = self.get_correspondents()
+        for c in correspondents:
+            if c['name'].lower() == name.lower():
+                return c['id']
+        
+        # Create new correspondent
+        response = requests.post(
+            f"{self._api_url}/correspondents/",
+            headers={"Authorization": f"Token {self._auth_token}"},
+            json={"name": name}
+        )
+        if response.ok:
+            return response.json()['id']
+        return None
+
+    def get_or_create_tag(self, name):
+        """Get tag ID by name or create if doesn't exist"""
+        tags = self.get_tags()
+        for t in tags:
+            if t['name'].lower() == name.lower():
+                return t['id']
+        
+        # Create new tag
+        response = requests.post(
+            f"{self._api_url}/tags/",
+            headers={"Authorization": f"Token {self._auth_token}"},
+            json={"name": name}
+        )
+        if response.ok:
+            return response.json()['id']
+        return None
+
+    def update_document(self, document_id, updates):
+        """Update document with given fields"""
+        response = requests.patch(
+            f"{self._api_url}/documents/{document_id}/",
+            headers={"Authorization": f"Token {self._auth_token}"},
+            json=updates
+        )
+        return response.ok
